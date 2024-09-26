@@ -7,7 +7,7 @@ unit App.Objects.Entys;
 interface
 
 uses
-   App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.Common.Utils, App.System.Classes;
+   App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.System.Classes;
 
 type
 

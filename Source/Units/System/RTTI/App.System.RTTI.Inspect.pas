@@ -127,6 +127,16 @@ type
       function GetObjectAttribute(const AClassAttribute: TClass): TCustomAttribute;
 
       /// <summary>
+      ///    Obtém o TPropertyData da primary key do objeto
+      /// </summary>
+      function GetPrimaryKeyProperty: TPropertyData;
+
+      /// <summary>
+      ///    Verifica se existe alguma Property com o tipo TCollectionProperty no Objeto
+      /// </summary>
+      function HasCollectionProperty: Boolean;
+
+      /// <summary>
       ///   Get <TObjectDBRelation>
       /// </summary>
       function GetObjectDBRelation: TDBRelation;
@@ -286,6 +296,68 @@ end;
 function TRTTIInspectObject.GetObjectProperties: TArray<TRttiProperty>;
 begin
    Result := RttiType.GetProperties;
+end;
+
+function TRTTIInspectObject.GetPrimaryKeyProperty: TPropertyData;
+var
+   LRttiInspectObject: TRTTIInspectObject;
+   LRttiInspectProperty: TRTTIInspectProperty;
+   LRttiProperty: TRttiProperty;
+   LRttiProperties: TArray<TRttiProperty>;
+   LPropertyData: TPropertyData;
+begin
+   LRttiInspectObject := TRTTIInspectObject.Create(Instance);
+   try
+      LRttiProperties := LRttiInspectObject.GetObjectProperties;
+
+      for LRttiProperty in LRttiProperties do
+      begin
+         LRttiInspectProperty := TRTTIInspectProperty.Create(LRttiProperty);
+         try
+            LPropertyData := LRttiInspectProperty.GetPropertyData;
+
+            if (LPropertyData <> nil) and (LPropertyData.IsPrimaryKey) then
+               Exit(LPropertyData);
+         finally
+            FreeAndNil(LRttiInspectProperty);
+         end;
+      end;
+   finally
+      FreeAndNil(LRttiInspectObject);
+   end;
+
+   Result := nil;
+end;
+
+function TRTTIInspectObject.HasCollectionProperty: Boolean;
+var
+   LRttiInspectObject: TRTTIInspectObject;
+   LRttiInspectProperty: TRTTIInspectProperty;
+   LRttiProperty: TRttiProperty;
+   LRttiProperties: TArray<TRttiProperty>;
+   LPropertyCollection: TPropertyCollection;
+begin
+   LRttiInspectObject := TRTTIInspectObject.Create(Instance);
+   try
+      LRttiProperties := LRttiInspectObject.GetObjectProperties;
+
+      for LRttiProperty in LRttiProperties do
+      begin
+         LRttiInspectProperty := TRTTIInspectProperty.Create(LRttiProperty);
+         try
+            LPropertyCollection := LRttiInspectProperty.GetPropertyCollection;
+
+            if (LPropertyCollection <> nil) then
+               Exit(True);
+         finally
+            FreeAndNil(LRttiInspectProperty);
+         end;
+      end;
+   finally
+      FreeAndNil(LRttiInspectObject);
+   end;
+
+   Result := False;
 end;
 
 procedure TRTTIInspectObject.SetDataBaseFieldProperties(const ADataBaseField: TDataBaseField; const AInspect: TRTTIInspectProperty);

@@ -42,6 +42,10 @@ inherited FrmSystemAncestralCadastro: TFrmSystemAncestralCadastro
       ClientRectTop = 41
       object TabSheetDados: TcxTabSheet
         ImageIndex = 0
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object GrbButtons: TcxGroupBox
           Left = 0
           Top = 155
@@ -167,6 +171,7 @@ inherited FrmSystemAncestralCadastro: TFrmSystemAncestralCadastro
             Properties.ReadOnly = True
             Style.BorderStyle = ebsNone
             TabOrder = 0
+            ExplicitHeight = 21
             Width = 37
           end
         end
@@ -210,6 +215,8 @@ inherited FrmSystemAncestralCadastro: TFrmSystemAncestralCadastro
             StyleFocused.LookAndFeel.NativeStyle = False
             StyleHot.LookAndFeel.NativeStyle = False
             TabOrder = 0
+            ExplicitWidth = 161
+            ExplicitHeight = 21
           end
         end
       end

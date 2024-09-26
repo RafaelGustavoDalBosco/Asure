@@ -25,7 +25,6 @@ uses
 {$REGION '| APP |'}
    App.System.Connection,
    App.System.Connection.Transaction,
-   App.System.Vars,
    App.Consts.Messages;
 {$ENDREGION}
 
@@ -321,6 +320,9 @@ type
   end;
 
 implementation
+
+uses
+   App.System.Vars;
 
 { TQuery }
 

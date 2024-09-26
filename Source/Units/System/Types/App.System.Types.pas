@@ -41,7 +41,7 @@ type
   /// <summary>
   ///    Tipos de flags das properties
   /// </summary>
-  TTypePropertyObjectFlag = (pofCreating, pofChanged);
+  TTypePropertyObjectFlag = (pofCreating, pofChanged, pofDeleted);
 
 implementation
 

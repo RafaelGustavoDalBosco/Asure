@@ -53,6 +53,11 @@ type
       /// </summary>
       procedure SetFieldValue(var ACurrent: Boolean; const ANew: Boolean); overload;
 
+      /// <summary>
+      ///    SET FIELD VALUE [WORD]
+      /// </summary>
+      procedure SetFieldValue(var ACurrent: Word; const ANew: Word); overload;
+
       property Flags: TPropertiesObjectFlags read FFlags write SetFlags;
    end;
 
@@ -130,6 +135,15 @@ begin
 end;
 
 procedure TSystemClass.SetFieldValue(var ACurrent: TDateTime; const ANew: TDateTime);
+begin
+   if (ACurrent <> ANew) then
+   begin
+      Include(FFlags, pofChanged);
+      ACurrent := ANew;
+   end;
+end;
+
+procedure TSystemClass.SetFieldValue(var ACurrent: Word; const ANew: Word);
 begin
    if (ACurrent <> ANew) then
    begin

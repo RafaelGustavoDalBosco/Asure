@@ -105,6 +105,7 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
         Font.Name = 'Segoe UI Semibold'
         Font.Style = [fsBold]
         ParentFont = False
+        OnClick = BtDeleteClick
       end
       object BtUpdate: TcxButton
         Left = 113
@@ -160,6 +161,7 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
         Font.Name = 'Segoe UI Semibold'
         Font.Style = [fsBold]
         ParentFont = False
+        OnClick = BtUpdateClick
       end
       object BtInsert: TcxButton
         Left = 2
@@ -215,6 +217,53 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
         Font.Name = 'Segoe UI Semibold'
         Font.Style = [fsBold]
         ParentFont = False
+        OnClick = BtInsertClick
+      end
+      object BtCancel: TcxButton
+        Left = 607
+        Top = 2
+        Width = 106
+        Height = 36
+        Align = alRight
+        Caption = 'S&air'
+        Colors.Default = clWhite
+        LookAndFeel.NativeStyle = True
+        OptionsImage.Glyph.SourceDPI = 96
+        OptionsImage.Glyph.Data = {
+          3C3F786D6C2076657273696F6E3D22312E302220656E636F64696E673D225554
+          462D38223F3E0D0A3C7376672076657273696F6E3D22312E31222069643D224C
+          617965725F312220786D6C6E733D22687474703A2F2F7777772E77332E6F7267
+          2F323030302F7376672220786D6C6E733A786C696E6B3D22687474703A2F2F77
+          77772E77332E6F72672F313939392F786C696E6B2220783D223070782220793D
+          22307078222076696577426F783D2230203020333220333222207374796C653D
+          22656E61626C652D6261636B67726F756E643A6E657720302030203332203332
+          3B2220786D6C3A73706163653D227072657365727665223E262331333B262331
+          303B3C7374796C6520747970653D22746578742F6373732220786D6C3A737061
+          63653D227072657365727665223E2E426C75657B66696C6C3A23313137374437
+          3B7D262331333B262331303B2623393B2E59656C6C6F777B66696C6C3A234646
+          423131353B7D262331333B262331303B2623393B2E426C61636B7B66696C6C3A
+          233732373237323B7D262331333B262331303B2623393B2E477265656E7B6669
+          6C6C3A233033394332333B7D262331333B262331303B2623393B2E5265647B66
+          696C6C3A234431314331433B7D262331333B262331303B2623393B2E7374307B
+          6F7061636974793A302E37353B7D262331333B262331303B2623393B2E737431
+          7B6F7061636974793A302E353B7D3C2F7374796C653E0D0A3C672069643D2244
+          656C657465436972636C6564223E0D0A09093C7061746820636C6173733D2252
+          65642220643D224D31362C3443392E342C342C342C392E342C342C313673352E
+          342C31322C31322C31327331322D352E342C31322D31325332322E362C342C31
+          362C347A204D32332E312C32302E326C2D322E382C322E384C31362C31382E38
+          6C2D342E322C342E3220202623393B2623393B6C2D322E382D322E386C342E32
+          2D342E326C2D342E322D342E326C322E382D322E386C342E322C342E326C342E
+          322D342E326C322E382C322E384C31382E382C31364C32332E312C32302E327A
+          222F3E0D0A093C2F673E0D0A3C2F7376673E0D0A}
+        TabOrder = 3
+        Visible = False
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Segoe UI Semibold'
+        Font.Style = [fsBold]
+        ParentFont = False
+        OnClick = BtCancelClick
       end
     end
     object GrbGrid: TcxGroupBox
@@ -255,6 +304,7 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
         TabOrder = 0
         LookAndFeel.NativeStyle = False
         object RecordDB: TcxGridDBTableView
+          OnDblClick = RecordDBDblClick
           Navigator.Buttons.CustomButtons = <>
           ScrollbarAnnotations.CustomAnnotations = <>
           DataController.Summary.DefaultGroupSummaryItems = <>
@@ -273,6 +323,7 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
           OptionsView.ScrollBars = ssVertical
           OptionsView.GroupByBox = False
           OptionsView.Indicator = True
+          OnColumnHeaderClick = RecordDBColumnHeaderClick
           object GridColID: TcxGridDBColumn
             DataBinding.FieldName = 'ID'
             DataBinding.IsNullValueType = True
@@ -484,6 +535,7 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
         Top = 20
         Align = alClient
         ParentFont = False
+        Properties.OnChange = EdtSearchPropertiesChange
         Style.BorderStyle = ebsNone
         Style.Font.Charset = ANSI_CHARSET
         Style.Font.Color = clWindowText
@@ -545,10 +597,46 @@ inherited FrmSystemAncestralCRUD: TFrmSystemAncestralCRUD
           0000000000000000000000000000000000000000000000000005108152F1034B
           2AAE0007041700000003000000010000000000000000}
         PaintStyle = bpsGlyph
+        PopupMenu = PopupExport
         SpeedButtonOptions.CanBeFocused = False
         SpeedButtonOptions.Flat = True
         TabOrder = 1
+        OnClick = BtExportClick
       end
+    end
+  end
+  object PopupExport: TPopupMenu
+    Left = 360
+    Top = 162
+    object XML: TMenuItem
+      Caption = 'XML'
+      ImageIndex = 39
+      OnClick = XMLClick
+    end
+    object XLS: TMenuItem
+      Caption = 'XLS'
+      ImageIndex = 33
+      OnClick = XLSClick
+    end
+    object TXT: TMenuItem
+      Caption = 'TXT'
+      ImageIndex = 30
+      OnClick = TXTClick
+    end
+    object HTML: TMenuItem
+      Caption = 'HTML'
+      ImageIndex = 12
+      OnClick = HTMLClick
+    end
+    object CSV: TMenuItem
+      Caption = 'CSV'
+      ImageIndex = 0
+      OnClick = CSVClick
+    end
+    object XLSX: TMenuItem
+      Caption = 'XLSX'
+      ImageIndex = 36
+      OnClick = XLSXClick
     end
   end
 end

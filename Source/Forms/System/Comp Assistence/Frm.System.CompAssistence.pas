@@ -71,6 +71,7 @@ end;
 
 procedure TFSystemCompAssistence.FormCreate(Sender: TObject);
 begin
+   inherited;
    FSystemCompAssistence.CxStyleSelection.Color := DefaultMainColor;
    FSystemCompAssistence.CxStyleTitle.Color := DefaultColumnColor;
    FSystemCompAssistence.CxStyleTitle.TextColor := DefaultTitleColor;

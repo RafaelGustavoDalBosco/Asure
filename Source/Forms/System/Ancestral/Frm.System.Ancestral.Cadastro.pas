@@ -283,6 +283,9 @@ procedure TFrmSystemAncestralCadastro.SetValuesOnForm;
 var
    LDAO: TRTTIDataAcessObject;
 begin
+   Enty.ID := ID;
+   Enty.IdEmpresa := gvEmpresa.ID;
+
    LDAO := TRTTIDataAcessObject.Create(Enty);
    try
       if LDAO.Select then

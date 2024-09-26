@@ -7,7 +7,9 @@ unit App.System.Classes.Collection;
 interface
 
 uses
-   System.SysUtils, System.Generics.Collections, System.Generics.Defaults, App.Consts.Messages;
+   System.SysUtils, App.System.Wrapper, System.Generics.Collections,
+   System.Generics.Defaults,
+   App.Consts.Messages;
 
 type
 
@@ -32,7 +34,7 @@ type
 
    TCommonDictionary<ClassObject: class> = class(TCommonDictionary)
    public
-       /// <summary>
+      /// <summary>
       ///    Adiciona um novo objeto ao dicionário
       /// </summary>
       function Add(const AKey: Variant): ClassObject; inline;
@@ -40,6 +42,11 @@ type
 
    TCollectionHelper = class
    public
+      /// <summary>
+      ///    Obtém o TQuery de um collection de uma classe
+      /// </summary>
+      class function GetCollectionOfCustom(const AClass: TClass): TQuery; static;
+
       /// <summary>
       ///   Obtém uma coleção de objetos através de uma classe
       /// </summary>
@@ -118,6 +125,18 @@ begin
    LDAO := TRTTIDataAcessObject.Create(AClass.Create);
    try
       Result := LDAO.ListOf(ASQL);
+   finally
+      FreeAndNil(LDAO);
+   end;
+end;
+
+class function TCollectionHelper.GetCollectionOfCustom(const AClass: TClass): TQuery;
+var
+   LDAO: TRTTIDataAcessObject;
+begin
+   LDAO := TRTTIDataAcessObject.Create(AClass.Create);
+   try
+      Result := LDAO.ListOfCustom;
    finally
       FreeAndNil(LDAO);
    end;

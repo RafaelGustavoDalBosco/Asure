@@ -54,6 +54,7 @@ uses
    Vcl.Forms,
    Vcl.Controls,
    Vcl.Dialogs,
+   Vcl.Menus,
    Vcl.StdCtrls,
 {$ENDREGION}
 
@@ -98,18 +99,20 @@ uses
    App.Common.Arrays,
    App.Consts.Messages,
    App.Consts.Common,
+   App.Consts.DataBase,
    App.System.Classes.Collection,
    App.System.DataBase.Objects,
    App.System.SQL.DataBase,
    App.System.Log,
+   App.System.Controller.Component.Border,
+   App.System.RTTI.CustomAttributes,
+   App.System.RTTI.Inspect,
    App.System.Wrapper,
    App.System.Types,
-   App.Consts.DataBase,
 
    Frm.System.Watcher,
    Frm.System.Message,
-   Frm.System.CompAssistence, App.System.Controller.Component.Border,
-  App.System.RTTI.CustomAttributes, App.System.RTTI.Inspect;
+   Frm.System.CompAssistence, App.Objects.Entys;
 {$ENDREGION}
 
 type
@@ -129,6 +132,19 @@ type
       ///    Obtém a versão atual do projeto
       /// </summary>
       class function GetApplicationVersion: UnicodeString; static;
+   end;
+
+   TLoadListUtils = class
+   public
+      /// <summary>
+      ///    Carrega e seta as contas bancárias em um CxComboBox
+      /// </summary>
+      class procedure LoadAndSetContasBancarias(const ACxComboBox: TcxComboBox); static;
+
+      /// <summary>
+      ///    Carrega e seta os tipos de pagamento forma
+      /// </summary>
+      class procedure LoadAndSetTiposPagamentoFormas(const ACxComboBox: TcxComboBox); static;
    end;
 
    TMessageControl = class
@@ -167,9 +183,14 @@ type
    TComponentControl = class
    public
       /// <summary>
+      ///    Obtém o Caption de um componente
+      /// </summary>
+      class function GetCaptionFromComponent(const AComponent: TComponent): UnicodeString; static;
+
+      /// <summary>
       ///    Mostra a mensagem de warning, referente ao campo vazio
       /// </summary>
-      class procedure ShowWarnFocus(const AComponent: TComponent; const ACaption: UnicodeString); static;
+      class procedure ShowWarnFocus(const AComponent: TComponent; const ACaption: UnicodeString = ''); static;
 
       /// <summary>
       ///    Seta o foco a um componente
@@ -220,6 +241,16 @@ type
       ///    Seta ao status ENABLE dos componentes de um form específico
       /// </summary>
       class procedure EnableForm(const AForm: TForm; const AEnabled: Boolean); static;
+
+      /// <summary>
+      ///   Mostra um PopUpMenu baseado em cxButton
+      /// </summary>
+      class procedure ShowPopUpMenu(const APopUp: TPopupMenu; const AOwner: TcxButton); static;
+
+      /// <summary>
+      ///   Obtém o index de um combobox baseado em um TOBject [INTEGER]
+      /// </summary>
+      class function GetIndexOfObject(const AcxComboBox: TcxComboBox; const AObject: Integer): Integer; static;
    end;
 
    TGridControl = class
@@ -386,6 +417,11 @@ type
       ///    Obtém o próximo valor de PK de um objeto [INT64]
       /// </summary>
       class function NextValueFrom(const AObject: TObject): Int64; static;
+
+      /// <summary>
+      ///   Cria um TQuery e vincula a uma SQL
+      /// </summary>
+      class function CreateQuery(const ASQL: UnicodeString): TQuery; static;
    end;
 
    TFileControl = class
@@ -666,6 +702,18 @@ type
       class procedure Close; static;
    end;
 
+   TEntyControl = class
+   public
+      /// <summary>
+      ///    Obtém a SQL de LIST através de uma classe de entidade
+      /// </summary>
+      class function GetSQLListFromClass(const AClass: TClass): UnicodeString; static;
+
+      /// <summary>
+      ///    Obtém o Objeto da Entidade selecionada através de um ID
+      /// </summary>
+      class function GetEntyFromID(const AID: Int64; const AClass: TClass): TEnty; static;
+   end;
 
 var
    SysFile: TFileControl;
@@ -679,6 +727,8 @@ var
    SysComp: TComponentControl;
    SysGrid: TGridControl;
    SysMsg: TMessageControl;
+   SysLoadList: TLoadListUtils;
+   SysEnty: TEntyControl;
 
 implementation
 
@@ -687,8 +737,11 @@ implementation
 uses
    App.System.Vars,
    App.System.RTTI.DAO,
+   App.System.RTTI.Builder.SQL.Generate,
    App.Objects.Entys.Common,
-   App.Common.Vars;
+   App.Objects.Enty.Banco.Conta,
+   App.Common.Vars,
+   App.Common.Records;
 
 class procedure TFileControl.CreateFolder(const APath: UnicodeString);
 begin
@@ -1311,6 +1364,13 @@ begin
    end;
 end;
 
+class function TDataBaseControl.CreateQuery(const ASQL: UnicodeString): TQuery;
+begin
+   Result := TQuery.Create;
+   Result.AddSQL(ASQL);
+   Result.Open;
+end;
+
 class function TDataBaseControl.DataBaseOnSchemaPostGres: Boolean;
 var
    LQuery: TQuery;
@@ -1421,15 +1481,12 @@ class function TDataBaseControl.NextValueFrom(const AObject: TObject): Int64;
 var
    LQuery: TQuery;
    LSystemSQL: TSystemSQLDataBaseCommon;
-   LDBRelation: TDBRelation;
    LInspect: TRTTIInspectObject;
    LSequence: UnicodeString;
 begin
    LInspect := TRTTIInspectObject.Create(AObject);
    try
-      LDBRelation := LInspect.GetObjectDBRelation;
-
-      LSequence := LDBRelation.Sequence;
+      LSequence := LInspect.GetObjectDBRelation.Sequence;
    finally
       FreeAndNil(LInspect);
    end;
@@ -1543,6 +1600,23 @@ begin
    SysComp.SetFocus(AComponent);
 end;
 
+class function TComponentControl.GetCaptionFromComponent(const AComponent: TComponent): UnicodeString;
+begin
+   if AComponent is TcxGroupBox then
+      Result := TcxGroupBox(AComponent).Caption;
+
+   if AComponent is TcxLabel then
+      Result := TcxLabel(AComponent).Caption;
+end;
+
+class function TComponentControl.GetIndexOfObject(const AcxComboBox: TcxComboBox; const AObject: Integer): Integer;
+begin
+   if (AcxComboBox.Properties.Items.Count > 0) then
+      Result := AcxComboBox.Properties.Items.IndexOfObject(TObject(AObject))
+   else
+      Result := -1;
+end;
+
 class function TComponentControl.GetTextFrom(const ACxMaskEdit: TcxMaskEdit): UnicodeString;
 begin
    Result := ACxMaskEdit.EditText;
@@ -1625,9 +1699,28 @@ begin
    FSystemCompAssistence.HintController.ShowHint(LPoint.X, LPoint.Y, LCaption, AHint);
 end;
 
-class procedure TComponentControl.ShowWarnFocus(const AComponent: TComponent; const ACaption: UnicodeString);
+class procedure TComponentControl.ShowPopUpMenu(const APopUp: TPopupMenu; const AOwner: TcxButton);
+var
+   LPoint: TPoint;
 begin
-   SysMsg.ShowWarn(Format(SEmptyFieldValue, [ACaption]));
+   LPoint.X := AOwner.Width div 2;
+   LPoint.Y := 0;
+
+   LPoint := AOwner.ClientToScreen(LPoint);
+
+   APopUp.Popup(LPoint.X + 20, LPoint.Y);
+end;
+
+class procedure TComponentControl.ShowWarnFocus(const AComponent: TComponent; const ACaption: UnicodeString);
+var
+   LCaption: UnicodeString;
+begin
+   if (ACaption.IsEmpty) then
+      LCaption := GetCaptionFromComponent(AComponent)
+   else
+      LCaption := ACaption;
+
+   SysMsg.ShowWarn(Format(SEmptyFieldValue, [LCaption]));
    SysComp.FocusIndicator(AComponent);
 end;
 
@@ -1737,7 +1830,7 @@ var
    LLoop: Integer;
    LFieldDef: TFieldDef;
 begin
-   if AQuery = nil then
+   if (AQuery = nil) then
       Exit(nil);
 
    Result := TFDMemTable.Create(nil);
@@ -1998,6 +2091,7 @@ end;
 class procedure TGridControl.SetFalseOptionsColumns(const AColumn: TcxGridColumn);
 begin
    AColumn.Options.AutoWidthSizable := False;
+   AColumn.Options.ExpressionEditing := False;
    AColumn.Options.CellMerging := False;
    AColumn.Options.GroupFooters := False;
    AColumn.Options.Grouping := False;
@@ -2028,12 +2122,105 @@ begin
    if (ARow <= ADBView.DataController.RecordCount) then
       ADBView.DataController.FocusedRowIndex := ARow
    else
-      Log.Write('App.Common.Utils', SErrorExceptionSilent, SErrorFocusedRowGrid, 'ComponentName: ' + ADBView.Name);
+      Log.Write(UnitName, SErrorExceptionSilent, SErrorFocusedRowGrid, 'ComponentName: ' + ADBView.Name);
 end;
 
 class procedure TGridControl.SetReadOnlyColumns(const AColumn: TCxGridColumn; const AState: Boolean);
 begin
    AColumn.Properties.ReadOnly := AState;
+end;
+
+{ TLoadListUtils }
+
+class procedure TLoadListUtils.LoadAndSetContasBancarias(const ACxComboBox: TcxComboBox);
+var
+   LListOf: TCommonCollection;
+   LBancoConta: TEntyBancoConta;
+   LLoop: Integer;
+begin
+   ACxComboBox.Properties.Items.Clear;
+   LListOf := SysColl.GetCollectionOf(TEntyBancoConta);
+   try
+      if (LListOf.Count > 0) then
+      begin
+         ACxComboBox.Properties.Items.BeginUpdate;
+
+         for LLoop := 0 to LListOf.Count - 1 do
+         begin
+            LBancoConta := TEntyBancoConta(LListOf.Items[LLoop]);
+
+            ACxComboBox.Properties.Items.AddObject(LBancoConta.Banco + ' - ' + LBancoConta.CpfCnpj, TObject(LBancoConta.ID));
+         end;
+
+         ACxComboBox.Properties.Items.EndUpdate;
+      end;
+   finally
+      FreeAndNil(LListOf);
+   end;
+end;
+
+class procedure TLoadListUtils.LoadAndSetTiposPagamentoFormas(const ACxComboBox: TcxComboBox);
+var
+   LRecord: TTypePagamentoFormaRecord;
+   LLoop: Integer;
+begin
+   ACxComboBox.Properties.Items.BeginUpdate;
+   ACxComboBox.Properties.Items.Clear;
+
+   for LLoop := Low(TiposPagamentoForma) to High(TiposPagamentoForma) do
+   begin
+      LRecord := TiposPagamentoForma[LLoop];
+
+      ACxComboBox.Properties.Items.AddObject(LRecord.fText, TObject(Ord(LRecord.fType)));
+   end;
+
+   ACxComboBox.Properties.Items.Clear;
+end;
+
+{ TEntyControl }
+
+class function TEntyControl.GetEntyFromID(const AID: Int64; const AClass: TClass): TEnty;
+var
+   LDAO: TRTTIDataAcessObject;
+   LNewObject: TEnty;
+begin
+   if (AID <= 0) then
+   begin
+      Log.Write(UnitName, SEmptyObject, Format(SEmptyFieldValue, [AID]), 'ClassName: ' + AClass.ClassName);
+      Exit(nil);
+   end;
+
+   LNewObject := AClass.NewInstance as TEnty;
+   LNewObject.ID := AID;
+
+   LDAO := TRTTIDataAcessObject.Create(LNewObject);
+   try
+      if LDAO.Select then
+         Result := LNewObject
+      else
+      begin
+         Log.Write(UnitName, SEmptyObject, Format(SWarnEmptyObjectSelect, [LNewObject.ClassName]), 'ID: ' + AID.ToString);
+         FreeAndNil(LNewObject);
+         Result := nil;
+      end;
+   finally
+      FreeAndNil(LDAO);
+   end;
+end;
+
+class function TEntyControl.GetSQLListFromClass(const AClass: TClass): UnicodeString;
+var
+   LBuilder: TRTTIBuilderSQL;
+   LInstance: TObject;
+begin
+   LInstance := AClass.NewInstance;
+   LBuilder := TRTTIBuilderSQL.Create(LInstance, TTypeBuilderSQL.tbsList);
+   try
+      Result := LBuilder.GetSQL;
+   finally
+      FreeAndNil(LInstance);
+      FreeAndNil(LBuilder);
+   end;
 end;
 
 end.

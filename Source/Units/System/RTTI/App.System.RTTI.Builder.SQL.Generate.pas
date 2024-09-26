@@ -32,6 +32,10 @@ type
     FListParams: TList<UnicodeString>;
     FListFields: TList<UnicodeString>;
     FSystemSQLDataBase: TSystemSQLDataBaseCommon;
+    FWithReturning: Boolean;
+    FAliasPrimaryKey: UnicodeString;
+    procedure SetAliasPrimaryKey(const Value: UnicodeString);
+    procedure SetWithReturning(const Value: Boolean);
     procedure SetCurrentObject(const Value: TObject);
     procedure SetTypeBuilder(const Value: TTypeBuilderSQL);
     procedure SetDBRelation(const Value: TDBRelation);
@@ -52,6 +56,8 @@ type
     property RttiInspect: TRTTIInspectObject read FRttiInspect write SetRttiInspect;
     property DBRelation: TDBRelation read FDBRelation write SetDBRelation;
     property SystemSQLDataBase: TSystemSQLDataBaseCommon read FSystemSQLDataBase write SetSystemSQLDataBase;
+    property WithReturning: Boolean read FWithReturning write SetWithReturning;
+    property AliasPrimaryKey: UnicodeString read FAliasPrimaryKey write SetAliasPrimaryKey;
   protected
     /// <summary>
     ///    Finaliza a lista de params e wheres
@@ -108,7 +114,7 @@ type
     /// </summary>
     function GetSQL: UnicodeString;
 
-    constructor Create(const AObject: TObject; const AType: TTypeBuilderSQL); overload;
+    constructor Create(const AObject: TObject; const AType: TTypeBuilderSQL; const AWithReturning: Boolean = False; const AAliasPK: UnicodeString = ''); overload;
     destructor Destroy; override;
   end;
 
@@ -117,7 +123,7 @@ implementation
 { TRTTIBuilderData }
 
 uses
-  App.System.Vars, App.Consts.Messages;
+   App.System.Vars, App.Consts.Messages;
 
 { TRTTIBuilderSQL }
 
@@ -182,10 +188,12 @@ begin
       raise Exception.CreateFmt(SErrorNotEnoughResource, ['[Build: SQL Header]']);
 end;
 
-constructor TRTTIBuilderSQL.Create(const AObject: TObject; const AType: TTypeBuilderSQL);
+constructor TRTTIBuilderSQL.Create(const AObject: TObject; const AType: TTypeBuilderSQL; const AWithReturning: Boolean; const AAliasPK: UnicodeString);
 begin
    SetCurrentObject(AObject);
    SetTypeBuilder(AType);
+   SetWithReturning(AWithReturning);
+   SetAliasPrimaryKey(AAliasPK);
    StringBuilder := TStringBuilder.Create;
    ListWheres := TList<UnicodeString>.Create;
    ListWheres.Add(' WHERE ');
@@ -229,6 +237,9 @@ begin
 
       for LLoop := 0 to ListParams.Count - 1 do
          StringBuilder.Append(ListParams.Items[LLoop]);
+
+      if (WithReturning) and (not FAliasPrimaryKey.IsEmpty) then
+         StringBuilder.Append(' RETURNING (' + AliasPrimaryKey + ')');
 
       StringBuilder.Append(';');
    end;
@@ -357,7 +368,10 @@ begin
             tbsInsertOrUpdate:
                        begin
                            if (LPropertyData.IsPrimaryKey) and (LValue.AsInt64 <= 0) then
-                              ListParams.Add(GetSequencePlainTextPrimaryKey(DBRelation))
+                           begin
+                              ListParams.Add(GetSequencePlainTextPrimaryKey(DBRelation));
+                              FAliasPrimaryKey := LPropertyData.FieldName;
+                           end
                            else
                               ListParams.Add(':' + LPropertyData.FieldName + ', ');
                        end;
@@ -392,6 +406,11 @@ begin
    finally
       FreeAndNil(LRttiInspectProperty);
    end;
+end;
+
+procedure TRTTIBuilderSQL.SetAliasPrimaryKey(const Value: UnicodeString);
+begin
+   FAliasPrimaryKey := Value;
 end;
 
 procedure TRTTIBuilderSQL.SetCurrentObject(const Value: TObject);
@@ -437,6 +456,11 @@ end;
 procedure TRTTIBuilderSQL.SetTypeBuilder(const Value: TTypeBuilderSQL);
 begin
    FTypeBuilder := Value;
+end;
+
+procedure TRTTIBuilderSQL.SetWithReturning(const Value: Boolean);
+begin
+   FWithReturning := Value;
 end;
 
 end.

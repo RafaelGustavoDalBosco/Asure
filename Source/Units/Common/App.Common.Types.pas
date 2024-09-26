@@ -7,12 +7,27 @@ type
    /// <summary>
    ///    Tipos de pessoa
    /// </summary>
-   TTipoPessoa = (tipJuridica, tipFisica);
+   TTypePessoa = (tipFisica, tipJuridica);
+
+   /// <summary>
+   ///    Tipos de Formas de Pagamento
+   /// </summary>
+   TTypeFormaPagamento = (tfpVista, tfpPrazo, tfpOutros);
+
+   /// <summary>
+   ///    Bandeiras de cartão
+   /// </summary>
+   TTypeBandeiraCartao = (tbcVisa, tbcMasterCard, tbcOutros);
+
+   /// <summary>
+   ///    Tipos de recebimento
+   /// </summary>
+   TTypeRecebimentoOrigem = (troRevelo, troEco, troOutros);
 
    /// <summary>
    ///    Tipos de número de telefone
    /// </summary>
-   TTipoTelefone = (tifCelular, tifComercial, tifResencial, tifNone);
+   TTypeTelefone = (tifCelular, tifComercial, tifResencial, tifNone);
 
    /// <summary>
    ///    Tipos de exportação de CxGrids

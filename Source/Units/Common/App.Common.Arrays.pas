@@ -24,6 +24,26 @@ const
        fText: '*.*')
    );
 
+   Bandeiras: array [0..2] of TBandeiraCartaoRecord =
+   (
+     (fText: 'Visa';
+      fType: TTypeBandeiraCartao.tbcVisa),
+     (fText: 'Master Card';
+      fType: TTypeBandeiraCartao.tbcMasterCard),
+     (fText: 'Outros';
+      fType: TTypeBandeiraCartao.tbcOutros)
+   );
+
+   TiposPagamentoForma: array [0..2] of TTypePagamentoFormaRecord =
+   (
+    (fText: 'Vista';
+     fType: tfpVista),
+    (fText: 'Prazo';
+     fType: tfpPrazo),
+    (fText: 'Outros';
+     fType: tfpOutros)
+   );
+
 implementation
 
 end.

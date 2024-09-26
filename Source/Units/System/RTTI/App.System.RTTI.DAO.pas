@@ -28,13 +28,28 @@ type
       procedure SetTransaction(const Value: TConnectionTransaction);
 
       /// <summary>
-      ///    Obtém o tipo de construção da SQL
+      ///    Cria uma nova instância da classe TRRTIBuilderSQL
       /// </summary>
-      function GetTypeSQLBuilderFromAction(const ATypeAction: TTypeAction): TTypeBuilderSQL;
+      function CreateNewInstanceOfBuilderSQL(const AType: TTypeBuilderSQL): TRTTIBuilderSQL;
    strict private
       property CurrentObject: TObject read FCurrentObject write SetCurrentObject;
       property Transaction: TConnectionTransaction read FTransaction write SetTransaction;
-  strict protected
+   protected
+      /// <summary>
+      ///    Processa os itens de Collection, caso tenha
+      /// </summary>
+      procedure ProcessCollectionPropertys;
+
+      /// <summary>
+      ///    Seta o valor COLLECTION da property para a execução dos OBJETOS
+      /// </summary>
+      procedure ProcessPropertyCollection(const AValue: TValue; const AProperty: TRttiProperty);
+
+      /// <summary>
+      ///    Processa os itens do Collection
+      /// </summary>
+      procedure ProcessObjectInCollection(const ACollection: TCommonCollection);
+   strict protected
       /// <summary>
       ///    Seta os parâmetros da SQL para SELECT
       /// </summary>
@@ -81,6 +96,16 @@ type
       function ListOf(const ASQL: UnicodeString): TCommonCollection; overload;
 
       /// <summary>
+      ///    Obtém uma Lista de Registros a partir da classe, retornando como TQuery
+      /// </summary>
+      function ListOfCustom: TQuery;
+
+      /// <summary>
+      ///   UPDATE OR INSERT INTO
+      /// </summary>
+      function Save: Boolean;
+
+      /// <summary>
       ///    INSERT
       /// </summary>
       function Insert: Boolean;
@@ -110,7 +135,8 @@ implementation
 { TRTTIDataAcessObject }
 
 uses
-   App.Consts.Messages, App.System.Vars, App.Common.Utils;
+   App.Consts.Messages, App.System.Vars, App.Common.Utils, App.System.Log, App.Objects.Entys,
+  App.System.Classes;
 
 constructor TRTTIDataAcessObject.Create(const AObject: TObject; const ATransaction: TConnectionTransaction);
 begin
@@ -130,13 +156,18 @@ begin
    inherited Create;
 end;
 
+function TRTTIDataAcessObject.CreateNewInstanceOfBuilderSQL(const AType: TTypeBuilderSQL): TRTTIBuilderSQL;
+begin
+   Result := TRTTIBuilderSQL.Create(CurrentObject, AType, RttiInspectObject.HasCollectionProperty);
+end;
+
 function TRTTIDataAcessObject.Delete: Boolean;
 var
    LQuery: TQuery;
    LRttiBuilderSQL: TRTTIBuilderSQL;
 begin
    LQuery := TQuery.Create;
-   LRttiBuilderSQL := TRTTIBuilderSQL.Create(CurrentObject, GetTypeSQLBuilderFromAction(taDelete));
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsDelete);
 
    if (Transaction = nil) then
       LQuery.StartTransaction;
@@ -171,26 +202,14 @@ begin
    inherited;
 end;
 
-function TRTTIDataAcessObject.GetTypeSQLBuilderFromAction(const ATypeAction: TTypeAction): TTypeBuilderSQL;
-begin
-   case ATypeAction of
-      taInsert: Result := tbsInsert;
-      taUpdate: Result := tbsUpdate;
-      taSelect: Result := tbsSelect;
-      taDelete: Result := tbsDelete;
-      taList: Result :=  tbsList;
-   else
-      Result := tbsNone;
-   end;
-end;
-
 function TRTTIDataAcessObject.Insert: Boolean;
 var
    LQuery: TQuery;
    LRttiBuilderSQL: TRTTIBuilderSQL;
+   LID: Int64;
 begin
    LQuery := TQuery.Create;
-   LRttiBuilderSQL := TRTTIBuilderSQL.Create(CurrentObject, GetTypeSQLBuilderFromAction(taInsert));
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsInsert);
 
    if (Transaction = nil) then
       LQuery.StartTransaction;
@@ -200,7 +219,10 @@ begin
       SetParamsSQLOnQueryInsert(LQuery);
 
       try
-         Result := LQuery.Execute;
+         Result := LQuery.GetData;
+
+         if (Result) then
+            ProcessCollectionPropertys;
 
          if (Transaction = nil) then
             LQuery.CommitTransaction;
@@ -236,6 +258,88 @@ begin
    end;
 end;
 
+function TRTTIDataAcessObject.ListOfCustom: TQuery;
+var
+   LQuery: TQuery;
+   LRttiBuilderSQL: TRTTIBuilderSQL;
+begin
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsList);
+   LQuery := TQuery.Create;
+   try
+      LQuery.AddSQL(LRttiBuilderSQL.GetSQL);
+      SetParamsSQLOnQuerySelect(LQuery);
+
+      if LQuery.GetData then
+         SetFieldsSQLOnObject(LQuery);
+   finally
+      Result := LQuery;
+      FreeAndNil(LRttiBuilderSQL);
+   end;
+end;
+
+procedure TRTTIDataAcessObject.ProcessCollectionPropertys;
+var
+   LRttiProperty: TRttiProperty;
+   LPropertyCollection: TPropertyCollection;
+   LValue: TValue;
+   LRttiInspectProperty: TRTTIInspectProperty;
+   LRttiProperties: TArray<TRttiProperty>;
+begin
+   LRttiProperties := RttiInspectObject.GetObjectProperties;
+
+   for LRttiProperty in LRttiProperties do
+   begin
+      LRttiInspectProperty := TRTTIInspectProperty.Create(LRttiProperty);
+      try
+         LPropertyCollection := LRttiInspectProperty.GetPropertyCollection;
+
+         if (LPropertyCollection <> nil) then
+         begin
+            LValue := LRttiProperty.GetValue(CurrentObject);
+            ProcessPropertyCollection(LValue, LRttiProperty);
+         end;
+      finally
+         FreeAndNil(LRttiInspectProperty);
+      end;
+   end;
+end;
+
+procedure TRTTIDataAcessObject.ProcessObjectInCollection(const ACollection: TCommonCollection);
+var
+   LLoop: TObject;
+   LDAO: TRTTIDataAcessObject;
+begin
+   for LLoop in ACollection do
+   begin
+      LDAO := TRTTIDataAcessObject.Create(LLoop, Transaction);
+      try
+         LDAO.Save;
+      finally
+         FreeAndNil(LDAO);
+      end;
+   end;
+end;
+
+procedure TRTTIDataAcessObject.ProcessPropertyCollection(const AValue: TValue; const AProperty: TRttiProperty);
+var
+   Value: TCommonCollection;
+begin
+   if (not AValue.IsObject) then
+      Exit;
+
+   if (AValue.AsObject is TCommonCollection) then
+   begin
+      Value := AValue.AsObject as TCommonCollection;
+
+      if (Value <> nil) then
+         ProcessObjectInCollection(Value)
+      else
+         Log.Write(UnitName, Format(SWarnObjectTypeDiff, [Value.ClassName, TCommonCollection.ClassName]));
+   end
+   else
+      Log.Write(UnitName, Format(SEmptyObject, [AProperty.Name]));
+end;
+
 function TRTTIDataAcessObject.ListOf: TCommonCollection;
 var
    LQuery: TQuery;
@@ -243,7 +347,7 @@ var
 begin
    Result := TCommonCollection.Create;
 
-   LRttiBuilderSQL := TRTTIBuilderSQL.Create(CurrentObject, GetTypeSQLBuilderFromAction(taList));
+   LRttiBuilderSQL :=  CreateNewInstanceOfBuilderSQL(tbsList);
    LQuery := TQuery.Create;
    try
       LQuery.AddSQL(LRttiBuilderSQL.GetSQL);
@@ -257,13 +361,51 @@ begin
    end;
 end;
 
+function TRTTIDataAcessObject.Save: Boolean;
+var
+   LQuery: TQuery;
+   LRttiBuilderSQL: TRTTIBuilderSQL;
+begin
+   LQuery := TQuery.Create;
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsInsertOrUpdate);
+
+   if (Transaction = nil) then
+      LQuery.StartTransaction;
+
+   try
+      LQuery.AddSQL(LRttiBuilderSQL.GetSQL);
+      SetParamsSQLOnQueryInsert(LQuery);
+
+      try
+         Result := LQuery.Execute;
+
+         if (Result) then
+            ProcessCollectionPropertys;
+
+         if (Transaction = nil) then
+            LQuery.CommitTransaction;
+      except
+         on E: Exception do
+         begin
+            if (Transaction = nil) then
+               LQuery.RollBackTransaction;
+
+            raise Exception.CreateFmt(SErrorPersistentObject, ['Save', CurrentObject.ClassName, E.Message]);
+         end;
+      end;
+   finally
+      FreeAndNil(LQuery);
+      FreeAndNil(LRttiBuilderSQL);
+   end;
+end;
+
 function TRTTIDataAcessObject.Select: Boolean;
 var
    LQuery: TQuery;
    LRttiBuilderSQL: TRTTIBuilderSQL;
 begin
    LQuery := TQuery.Create;
-   LRttiBuilderSQL := TRTTIBuilderSQL.Create(CurrentObject, GetTypeSQLBuilderFromAction(taSelect));
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsDelete);
    try
       LQuery.AddSQL(LRttiBuilderSQL.GetSQL);
       SetParamsSQLOnQuerySelect(LQuery);
@@ -704,9 +846,10 @@ function TRTTIDataAcessObject.Update: Boolean;
 var
    LQuery: TQuery;
    LRttiBuilderSQL: TRTTIBuilderSQL;
+   LID: Int64;
 begin
    LQuery := TQuery.Create;
-   LRttiBuilderSQL := TRTTIBuilderSQL.Create(CurrentObject, GetTypeSQLBuilderFromAction(taUpdate));
+   LRttiBuilderSQL := CreateNewInstanceOfBuilderSQL(tbsUpdate);
 
    if (Transaction = nil) then
       LQuery.StartTransaction;
@@ -717,6 +860,9 @@ begin
 
       try
          Result := LQuery.Execute;
+
+         if (Result) then
+            ProcessCollectionPropertys;
 
          if (Transaction = nil) then
             LQuery.CommitTransaction;
@@ -734,5 +880,6 @@ begin
       FreeAndNil(LRttiBuilderSQL);
    end;
 end;
+
 
 end.

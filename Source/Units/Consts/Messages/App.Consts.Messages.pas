@@ -44,6 +44,7 @@ const
 {$REGION '| EMPTY |'}
    SEmptyObjectParamsConnection = 'Não há parâmetros para a Conexão ao banco de dados!';
    SEmptyObjectTransaction = 'Não há uma transação criada!';
+   SEmptyObject = 'Objeto %s está NIL';
    SEmptyParamName = 'Nome do parâmetro está em branco!';
    SEmptyFieldName = 'Nome do campo está em branco!';
    SEmptyParamOnQuery = 'Parâmetro %s não encontrado na query!';
@@ -58,6 +59,9 @@ const
    SWarnFileMoved = 'Arquivo %s movido para o caminho %s';
    SWarnFolderCreated = 'Pasta criada no caminho %s';
    SWarnRecordChanging = 'Este registro está sendo editado pelo usuário %s!';
+   SWarnEmptyQuery = 'Não há registros a serem exibidos!';
+   SWarnEmptyObjectSelect = 'Não foi encontrados dados para o objeto %s no banco de dados';
+   SWarnObjectTypeDiff = 'O Objeto %s não é um do tipo %s';
 {$ENDREGION}
 
 {$REGION '| ACTIONS |'}

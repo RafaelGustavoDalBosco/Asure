@@ -223,6 +223,7 @@ end;
 
 procedure TSystemEngine.StartApplication;
 begin
+   gvTraceLog := True; // for now
    CreateDirectorys;
    StartConnection;
 end;

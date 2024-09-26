@@ -79,11 +79,11 @@ type
       property IdUsuario: Int64 read FIdUsuario write SetIdUsuario;
 
       [TPropertyData(cFieldClassParentName, True)]
-      [TPropertyString(100)]
+      [TPropertyString(50)]
       property ClassParentName: UnicodeString read FClassParentName write SetClassParentName;
 
       [TPropertyData(cFieldUserName)]
-      [TPropertyString(cLengthCommonUser)]
+      [TPropertyString(20)]
       property UserName: UnicodeString read FUserName write SetUserName;
 
       [TPropertyData(cFieldDataHora, True)]

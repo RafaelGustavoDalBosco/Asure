@@ -1,5 +1,9 @@
 program Dream;
 
+
+
+{$R *.dres}
+
 uses
   Vcl.Forms,
   Vcl.Themes,
@@ -45,7 +49,32 @@ uses
   App.Objects.Enty.Usuario in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Usuario.pas',
   App.System.Controller.Blocker in '..\Source\Units\System\Controller\App.System.Controller.Blocker.pas',
   Frm.System.Ancestral.CRUD in '..\Source\Forms\System\Ancestral\Frm.System.Ancestral.CRUD.pas' {FrmSystemAncestralCRUD},
-  App.System.Controller.Register in '..\Source\Units\System\Controller\App.System.Controller.Register.pas';
+  App.System.Controller.Register in '..\Source\Units\System\Controller\App.System.Controller.Register.pas',
+  Frm.Cadastro.Empresa in '..\Source\Forms\Cadastro\Frm.Cadastro.Empresa.pas' {FrmCadastroEmpresa},
+  Frm.CRUD.Empresa in '..\Source\Forms\CRUD\Frm.CRUD.Empresa.pas' {FrmCRUDEmpresa},
+  Frm.Cadastro.Usuario in '..\Source\Forms\Cadastro\Frm.Cadastro.Usuario.pas' {FrmCadastroUsuario},
+  Frm.CRUD.Usuario in '..\Source\Forms\CRUD\Frm.CRUD.Usuario.pas' {FrmCRUDUsuario},
+  App.Objects.Enty.Documento.Tipo in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Documento.Tipo.pas',
+  App.Objects.Enty.Pagamento.Formas in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Pagamento.Formas.pas',
+  App.Objects.Enty.Banco.Conta in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Banco.Conta.pas',
+  App.Objects.Enty.Banco.Conta.Cartao in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Banco.Conta.Cartao.pas',
+  App.Objects.Enty.Pagamento in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Pagamento.pas',
+  App.Objects.Enty.Root.Documento.Parcela in '..\Source\Units\Objects\Entys\Root\App.Objects.Enty.Root.Documento.Parcela.pas',
+  App.Objects.Enty.Income.Month in '..\Source\Units\Objects\Entys\Cadastro\App.Objects.Enty.Income.Month.pas',
+  Frm.Cadastro.Banco.Conta in '..\Source\Forms\Cadastro\Frm.Cadastro.Banco.Conta.pas' {FrmCadastroBancoConta},
+  Frm.CRUD.Banco.Conta in '..\Source\Forms\CRUD\Frm.CRUD.Banco.Conta.pas' {FrmCRUDBancoConta},
+  Frm.Cadastro.Banco.Conta.Cartao in '..\Source\Forms\Cadastro\Frm.Cadastro.Banco.Conta.Cartao.pas' {FrmCadastroBancoContaCartao},
+  Frm.CRUD.Banco.Conta.Cartao in '..\Source\Forms\CRUD\Frm.CRUD.Banco.Conta.Cartao.pas' {FrmCRUDBancoContaCartao},
+  App.Common.SQL.Custom in '..\Source\Units\Common\App.Common.SQL.Custom.pas',
+  Frm.Cadastro.Documento.Tipo in '..\Source\Forms\Cadastro\Frm.Cadastro.Documento.Tipo.pas' {FrmCadastroDocumentoTipo},
+  Frm.Cadastro.Pagamento.Formas in '..\Source\Forms\Cadastro\Frm.Cadastro.Pagamento.Formas.pas' {FrmCadastroPagamentoFormas},
+  Frm.CRUD.Pagamento.Formas in '..\Source\Forms\CRUD\Frm.CRUD.Pagamento.Formas.pas' {FrmCRUDPagamentoFormas},
+  Frm.CRUD.Documento.Tipo in '..\Source\Forms\CRUD\Frm.CRUD.Documento.Tipo.pas' {FrmCRUDDocumentoTipo},
+  Frm.Cadastro.Documento in '..\Source\Forms\Cadastro\Frm.Cadastro.Documento.pas' {FrmCadastroDocumento},
+  Frm.System.Ancestral.Execution in '..\Source\Forms\System\Ancestral\Frm.System.Ancestral.Execution.pas' {FrmSystemAncestralExecution},
+  App.System.Search in '..\Source\Units\System\Search\App.System.Search.pas',
+  Frm.System.Search in '..\Source\Forms\System\Search\Frm.System.Search.pas' {FrmSystemSearch},
+  App.Objects.Searchs in '..\Source\Units\Objects\Searchs\App.Objects.Searchs.pas';
 
 {$R *.res}
 
@@ -61,8 +90,8 @@ begin
          Application.Initialize;
          Application.MainFormOnTaskbar := True;
          Application.CreateForm(TFrmMain, FrmMain);
-         Application.CreateForm(TFSystemCompAssistence, FSystemCompAssistence);
-         Application.Run;
+  Application.CreateForm(TFSystemCompAssistence, FSystemCompAssistence);
+  Application.Run;
       end;
    finally
       LEngine.Free;

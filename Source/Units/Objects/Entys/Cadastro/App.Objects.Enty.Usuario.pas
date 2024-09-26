@@ -3,7 +3,7 @@ unit App.Objects.Enty.Usuario;
 interface
 
 uses
-   App.Objects.Entys, App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.Common.Utils, App.System.Classes, App.System.Vars;
+   App.Objects.Entys, App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.System.Classes;
 
 type
 
@@ -22,15 +22,15 @@ type
       procedure SetTitleColor(const Value: Integer);
    public
       [TPropertyData(cFieldNome, True)]
-      [TPropertyString(cLengthNome)]
+      [TPropertyString(60)]
       property Nome: UnicodeString read FNome write SetNome;
 
       [TPropertyData(cFieldUserName, True)]
-      [TPropertyString(cLengthCommonUser)]
+      [TPropertyString(20)]
       property UserName: UnicodeString read FUserName write SetUserName;
 
       [TPropertyData(cFieldPassWord, True)]
-      [TPropertyString(cLengthCommonUser)]
+      [TPropertyString(20)]
       property PassWord: UnicodeString read FPassWord write SetPassWord;
 
       [TPropertyData(cFieldTitleColor)]
@@ -46,7 +46,8 @@ implementation
 
 { TEntyUser }
 
-uses App.System.Controller.Register;
+uses
+   App.System.Controller.Register;
 
 procedure TEntyUser.SetMainColor(const Value: Integer);
 begin

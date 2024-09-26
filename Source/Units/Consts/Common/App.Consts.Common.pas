@@ -7,7 +7,7 @@ uses
 
 const
 
-   ApplicationVersion = 100;
+   ApplicationVersion = 101;
 
 {$REGION '| DIRECTORYS |'}
    /// <summary>

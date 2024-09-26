@@ -7,7 +7,7 @@ unit App.System.Connection.Transaction;
 interface
 
 uses
-   FireDAC.Comp.Client, App.System.Connection, System.SysUtils, App.System.Vars;
+   FireDAC.Comp.Client, App.System.Connection, System.SysUtils;
 
 type
 
@@ -50,6 +50,9 @@ type
   end;
 
 implementation
+
+uses
+    App.System.Vars;
 
 { TConnectionTransaction }
 

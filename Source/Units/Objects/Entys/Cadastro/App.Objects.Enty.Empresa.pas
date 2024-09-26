@@ -7,7 +7,7 @@ unit App.Objects.Enty.Empresa;
 interface
 
 uses
-   App.Objects.Entys, App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.Common.Utils, App.System.Classes, App.System.Vars;
+   App.Objects.Entys, App.System.RTTI.CustomAttributes, App.Consts.DataBase, App.System.Classes;
 
 type
 
@@ -24,7 +24,7 @@ type
       procedure SetTipoPessoa(const Value: Integer);
    public
       [TPropertyData(cFieldRazaoSocial, True)]
-      [TPropertyString(cLengthNome)]
+      [TPropertyString(60)]
       property RazaoSocial: UnicodeString read FRazaoSocial write SetRazaoSocial;
 
       [TPropertyData(cFieldTipoPessoa, True)]
